@@ -37,6 +37,8 @@ public class LRUCache<T, U> implements Cache<T, U> {
 			if(numElements == capacity) {
 				remove(head);
 				cache.remove(key);
+			}else{
+				numElements++;
 			}
 			U newEntry = provider.get(key);
 			Node<U> newNode = new Node(null, null, newEntry);

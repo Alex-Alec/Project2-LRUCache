@@ -45,11 +45,10 @@ public class CacheTester {
 	}
 
 	//Test List
-	//get num misses
-	//check eviction
+	//get num misses (hitting & missing, only hitting, only missing)
+	//check eviction (also check recency list is correct)
 	//check cache size 0
-	//check cache size is correct
+	//check cache size is correct (check bounds)
 	//base test of cache.get is correct
-	//
 
 }

@@ -10,8 +10,18 @@ import java.util.Random;
 public class CacheTester {
 	@Test
 	public void leastRecentlyUsedIsCorrect () {
-		DataProvider<Integer,String> provider = null; // Need to instantiate an actual DataProvider
-		Cache<Integer,String> cache = new LRUCache<Integer,String>(provider, 5);
+		StringIntProvider provider = new StringIntProvider();
+		provider.populate (100);
+		final Cache<String, Integer> cache = new LRUCache<String, Integer> (provider, 2);
+		cache.get("1"); //miss, add 1 to cache
+		cache.get("2"); //miss, add 2 to cache
+		assertTrue(cache.getNumMisses() == 2);
+		cache.get("1"); //hit
+		cache.get("3"); //miss, add 3 to cache, evict 2
+		assertTrue(cache.getNumMisses() == 3);
+		cache.get("3"); //hit
+		cache.get("2"); //miss, add 2 to cache, evict 1
+		assertTrue(cache.getNumMisses() == 4); //thinks answer is 3
 	}
 
 	@Test
@@ -45,63 +55,29 @@ public class CacheTester {
 	}
 
 	@Test
-	public void checkOnlyHits(){
+	public void checkSize0 () {
 		StringIntProvider provider = new StringIntProvider();
-		provider.populate(20);
-		int capacity = 10;
-		Cache<String, Integer> cache = new LRUCache<String, Integer> (provider, capacity);
-		int[] actual = new int[10];
-		for(int i = 0; i < capacity; i++){//caches first ten pairs
-			actual[i] = i;
-			cache.get(String.valueOf(i));
-		}
-
-		assertTrue(cache.getNumMisses() == 10);
-
-		int[] retrieved = new int[capacity];
-		for(int i = 0; i < capacity; i++){//retrieves first ten pairs
-			retrieved[i] = cache.get(String.valueOf(i));
-		}
-
-		assertTrue(cache.getNumMisses() == 10);
-		assertArrayEquals(actual,retrieved);
+		provider.populate (100);
+		final Cache<String, Integer> cache = new LRUCache<String, Integer> (provider, 0);
+		assertNull(cache.get("12"));
 	}
 
 	@Test
-	public void checkOnlyMisses(){
+	public void checkSize () {
 		StringIntProvider provider = new StringIntProvider();
-		provider.populate(20);
-		int capacity = 10;
-		Cache<String, Integer> cache = new LRUCache<String, Integer> (provider, capacity);
-		int[] actual = new int[10];
-		for(int i = 0; i < capacity; i++){//caches first ten pairs
-			actual[i] = i;
-			cache.get(String.valueOf(i));
-		}
-		assertTrue(cache.getNumMisses() == 10);
-		int[] retrieved = new int[capacity];
-		for(int i = capacity; i < 20;i++){
-			retrieved[i-10] = cache.get(String.valueOf(i));
-		}
-		assertTrue(cache.getNumMisses() == 20);
-		for(int i = 0; i < actual.length; i++){
-			assertNotEquals(actual[i], retrieved[i]);
-		}
-	}
-
-	@Test
-	public void checkProperGet(){
-		StringIntProvider provider = new StringIntProvider();
-		provider.populate(20);
-		int capacity = 10;
-		Cache<String, Integer> cache = new LRUCache<String, Integer> (provider, capacity);
+		provider.populate (100);
+		final Cache<String, Integer> cache = new LRUCache<String, Integer> (provider, 20);
 
 	}
 
 	@Test
-	public void checkEviction(){
-
+	public void checkCacheGet () {
+		StringIntProvider provider = new StringIntProvider();
+		provider.populate (100);
+		final Cache<String, Integer> cache = new LRUCache<String, Integer> (provider, 20);
+		assertTrue (cache.get("20") == 20);
 	}
+
 	//Test List
 	//get num misses (hitting & missing, only hitting, only missing)
 	//check eviction (also check recency list is correct)

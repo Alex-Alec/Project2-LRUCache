@@ -33,6 +33,9 @@ public class LRUCache<T, U> implements Cache<T, U> {
 	 * @return the value associated with the key
 	 */
 	public U get (T key) {
+		if (capacity == 0) {
+			return null;
+		}
 		if(!cache.containsKey(key)){ // miss
 			if(numElements == capacity) {
 				remove(head);

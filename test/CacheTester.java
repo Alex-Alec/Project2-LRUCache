@@ -78,6 +78,65 @@ public class CacheTester {
 		assertTrue (cache.get("20") == 20);
 	}
 
+
+	@Test
+	public void checkOnlyHits(){
+		StringIntProvider provider = new StringIntProvider();
+		provider.populate(20);
+		int capacity = 10;
+		Cache<String, Integer> cache = new LRUCache<String, Integer> (provider, capacity);
+		int[] actual = new int[10];
+		for(int i = 0; i < capacity; i++){//caches first ten pairs
+			actual[i] = i;
+			cache.get(String.valueOf(i));
+		}
+
+		assertTrue(cache.getNumMisses() == 10);
+
+		int[] retrieved = new int[capacity];
+		for(int i = 0; i < capacity; i++){//retrieves first ten pairs
+			retrieved[i] = cache.get(String.valueOf(i));
+		}
+
+		assertTrue(cache.getNumMisses() == 10);
+		assertArrayEquals(actual,retrieved);
+	}
+
+	@Test
+	public void checkOnlyMisses(){
+		StringIntProvider provider = new StringIntProvider();
+		provider.populate(20);
+		int capacity = 10;
+		Cache<String, Integer> cache = new LRUCache<String, Integer> (provider, capacity);
+		int[] actual = new int[10];
+		for(int i = 0; i < capacity; i++){//caches first ten pairs
+			actual[i] = i;
+			cache.get(String.valueOf(i));
+		}
+		assertTrue(cache.getNumMisses() == 10);
+		int[] retrieved = new int[capacity];
+		for(int i = capacity; i < 20;i++){
+			retrieved[i-10] = cache.get(String.valueOf(i));
+		}
+		assertTrue(cache.getNumMisses() == 20);
+		for(int i = 0; i < actual.length; i++){
+			assertNotEquals(actual[i], retrieved[i]);
+		}
+	}
+
+	@Test
+	public void checkProperGet(){
+		StringIntProvider provider = new StringIntProvider();
+		provider.populate(20);
+		int capacity = 10;
+		Cache<String, Integer> cache = new LRUCache<String, Integer> (provider, capacity);
+
+	}
+
+	@Test
+	public void checkEviction(){
+
+	}
 	//Test List
 	//get num misses (hitting & missing, only hitting, only missing)
 	//check eviction (also check recency list is correct)

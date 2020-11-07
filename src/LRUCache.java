@@ -80,11 +80,12 @@ public class LRUCache<T, U> implements Cache<T, U> {
 	}
 
 	private void remove(Node<U> node){
-		if(node.prev == null){
+		if(node.prev == null){ // node == head
 			node.next.prev = null;
 			head = node.next;
 		}else {
-			node.prev = node.next;
+			node.prev.next = node.next;
+			node.next.prev = node.prev;
 		}
 	}
 

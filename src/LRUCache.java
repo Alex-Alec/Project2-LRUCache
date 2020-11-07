@@ -34,8 +34,10 @@ public class LRUCache<T, U> implements Cache<T, U> {
 	 */
 	public U get (T key) {
 		if(!cache.containsKey(key)){ // miss
-			remove(head);
-			cache.remove(head);
+			if(numElements == capacity) {
+				remove(head);
+				cache.remove(key);
+			}
 			U newEntry = provider.get(key);
 			Node<U> newNode = new Node(null, null, newEntry);
 			cache.put(key, newNode);
@@ -79,17 +81,6 @@ public class LRUCache<T, U> implements Cache<T, U> {
 		}else {
 			node.prev = node.next;
 		}
-	}
-
-	private U get(int index) {
-		if (index < 0 || index >= numElements) {
-			throw new IllegalArgumentException("bad index");
-		}
-		Node<U> current = head;
-		for (int i = 0; i < index; i++) {
-			current = current.next;
-		}
-		return current.data;
 	}
 
 	private static class Node<U>{

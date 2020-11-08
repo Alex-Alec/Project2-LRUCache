@@ -14,20 +14,14 @@ public class CacheTester {
 		provider.populate (100);
 		final LRUCache<String, Integer> cache = new LRUCache<String, Integer> (provider, 2);
 		cache.get("1"); //miss, add 1 to cache
-		cache.printLinked();
 		cache.get("2"); //miss, add 2 to cache
-		cache.printLinked();
 		assertTrue(cache.getNumMisses() == 2);
 		cache.get("1"); //hit
-		cache.printLinked();
 		cache.get("3"); //miss, add 3 to cache, evict 2
-		cache.printLinked();
 		assertTrue(cache.getNumMisses() == 3);
 		cache.get("3"); //hit
-		cache.printLinked();
 		cache.get("2"); //miss, add 2 to cache, evict 1
-		cache.printLinked();
-		assertTrue(cache.getNumMisses() == 4); //thinks answer is 3
+		assertTrue(cache.getNumMisses() == 4);
 	}
 
 	@Test

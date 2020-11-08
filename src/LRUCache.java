@@ -11,8 +11,8 @@ public class LRUCache<T, U> implements Cache<T, U> {
 	private int numElements;
 
 	private DataProvider<T, U> provider;
-	private Map<T, Node<U>> cache = new HashMap<>();
-	private Node<U> head, tail;
+	private Map<T, Node<T, U>> cache = new HashMap<>();
+	private Node<T, U> head, tail;
 
 	/**
 	 * @param provider the data provider to consult for a cache miss
@@ -39,9 +39,10 @@ public class LRUCache<T, U> implements Cache<T, U> {
 			return null;
 		}
 
-		if(!cache.containsKey(key) || cache.get(key).getIsRemoved()){ // Miss, Account for the fact that cache could still contain the key or encounter a new key
+		if(!cache.containsKey(key)){ // Miss, Account for the fact that cache could still contain the key or encounter a new key
 
 			if(numElements == capacity) { // If the cache is already at capacity, have to remove a value from the cache
+				cache.remove(head.key);
 				remove(head);
 			}else{ // If the cache isn't at capacity, no elements need to be removed
 				numElements++;
@@ -49,7 +50,7 @@ public class LRUCache<T, U> implements Cache<T, U> {
 
 			// Get value from data provider & make a new Node
 			U newEntry = provider.get(key);
-			Node<U> newNode = new Node(null, null, newEntry);
+			Node<T, U> newNode = new Node(null, null, newEntry, key);
 
 			// Add the key value pair to the cache
 			cache.put(key, newNode);
@@ -63,7 +64,7 @@ public class LRUCache<T, U> implements Cache<T, U> {
 		} else{ // Hit
 
 			// Get the current node
-			Node<U> current = cache.get(key);
+			Node<T, U> current = cache.get(key);
 
 			// Remove & re-add the node, to update its place in the recency linked list
 			remove(current);
@@ -82,26 +83,10 @@ public class LRUCache<T, U> implements Cache<T, U> {
 	}
 
 	/**
-	 * Debug function
-	 */
-	public void printLinked(){
-		Node<U> current = head;
-		System.out.print(current.data + " ");
-		while(current.next != null){
-			System.out.print(current.next.data + " ");
-			current = current.next;
-		}
-		System.out.println();
-	}
-
-	/**
 	 * Adds a new value to the end of the recency linked list
 	 * @param node
 	 */
-	private void add(Node<U> node) {
-
-		// Explicitly say that the node is presently a part of the cache
-		node.setIsRemoved(false);
+	private void add(Node<T, U> node) {
 
 		if (head == null){ // Check if the linked list is empty
 			head = node;
@@ -117,10 +102,7 @@ public class LRUCache<T, U> implements Cache<T, U> {
 	 * Removes a specific Node from the recency linked list
 	 * @param node
 	 */
-	private void remove(Node<U> node){
-
-		// Explicitly state that this node has been removed from cache
-		node.setIsRemoved(true);
+	private void remove(Node<T, U> node){
 
 		if(node.equals(head)){ // Removing head Node
 
@@ -154,12 +136,10 @@ public class LRUCache<T, U> implements Cache<T, U> {
 	 * An implementation of Node used specifically in a doubly linked list storing the recency of the cache
 	 * @param <U>
 	 */
-	private static class Node<U>{
+	private static class Node<T, U>{
 		Node next, prev;
 		U data;
-
-		// States if the Node is currently removed/a part of the cache, true = out of cache, false = in cache
-		boolean isRemoved;
+		T key;
 
 		/**
 		 * Constructor for Node
@@ -167,28 +147,12 @@ public class LRUCache<T, U> implements Cache<T, U> {
 		 * @param prev
 		 * @param data
 		 */
-		public Node(Node next, Node prev, U data){
+		public Node(Node next, Node prev, U data, T key){
 			this.next = next;
 			this.prev = prev;
 			this.data = data;
-
-			isRemoved = false;
+			this.key = key;
 		}
 
-		/**
-		 * Get the value of isRemoved
-		 * @return
-		 */
-		public boolean getIsRemoved(){
-			return isRemoved;
-		}
-
-		/**
-		 * Set the value of isRemoved
-		 * @param isRemoved
-		 */
-		public void setIsRemoved(boolean isRemoved){
-			this.isRemoved = isRemoved;
-		}
 	}
 }

@@ -10,15 +10,14 @@ import java.util.Random;
 public class CacheTester {
 
 	/**
-	 * Verifies that the least recently used value in the cache is
-	 * correct and that the number of hits and misses is correct
+	 * Verifies that the eviction protocol works properly
 	 */
 	@Test
 	public void leastRecentlyUsedIsCorrect () {
 		StringIntProvider provider = new StringIntProvider();
 		provider.populate (100);
 		int capacity = 2;
-		LRUCache<String, Integer> cache = new LRUCache<String, Integer> (provider, capacity);
+		Cache<String, Integer> cache = new LRUCache<String, Integer> (provider, capacity);
 		cache.get("1"); //miss, add 1 to cache
 		cache.get("2"); //miss, add 2 to cache
 		assertTrue(cache.getNumMisses() == 2);
@@ -28,40 +27,106 @@ public class CacheTester {
 		cache.get("3"); //hit
 		cache.get("2"); //miss, add 2 to cache, evict 1
 		assertTrue(cache.getNumMisses() == 4);
+		int capacity2 = 5;
+		Cache<String, Integer> cache2 = new LRUCache<String, Integer> (provider, capacity2);
+		cache2.get("5"); //miss, add 5 to cache2
+		cache2.get("26"); //miss, add 26 to cache2
+		cache2.get("45"); //miss, add 45 to cache2
+		cache2.get("1"); //miss, add 1 to cache2
+		cache2.get("53"); //miss, add 53 to cache2
+		cache2.get("19"); //miss, add 19 to cache2, evict 5
+		cache2.get("45"); //hit
+		assertTrue(cache2.getNumMisses() == 6);
+		cache2.get("5"); //miss, add 5 to cache2, evict 26
+		assertTrue(cache2.getNumMisses() == 7);
 	}
 
 	/**
 	 * Verifies that the get function is constant time on average
 	 */
+
 	@Test
 	public void checkConstantTime () {
+		checkConstantTimeHits();
+		checkConstantTimeMisses();
+	}
+
+	/**
+	  Verifies that the get function is constant time if it always hits
+	 */
+	@Test
+	public void checkConstantTimeHits () {
 		StringIntProvider provider = new StringIntProvider();
-		provider.populate(200000);
+		provider.populate(20000000);
 		int bound = 100;
+		int amountGets = 100000;
 		long [] timeCosts = new long[bound];
-		for (int i = 1; i < bound; i++) {
-			int capacity = i*1000;
-			Cache<String, Integer> cache = new LRUCache<String, Integer> (provider, capacity);
-			for (int j = 0; j < capacity; j++) { // Populate cache
-				cache.get(String.valueOf(j));
+		for (int i = 1; i < bound; i++) { //get timing values for different cache capacities
+			int capacity = i * amountGets;
+			Cache<String, Integer> cache = new LRUCache<String, Integer>(provider, capacity);
+			populateCache(cache, 0, capacity); //populate all elements of the cache
+			long start = System.currentTimeMillis(); //start timer
+			for (int m = 0; m < amountGets; m++) {
+				int temp = cache.get(String.valueOf(m)); //get elements from cache
 			}
-			Random rand = new Random();
-			int val = rand.nextInt(2*capacity);
-			long start = System.currentTimeMillis();
-			cache.get(String.valueOf(val));
-			long end = System.currentTimeMillis();
-			timeCosts[i] = end-start;
+			long end = System.currentTimeMillis(); //end timer
+			timeCosts[i] = end - start; //store time it took to get elements
 		}
-		int counter = 0;
-		for (int k = 0; k < bound; k++) {
-			for (int l = k++; l < bound; l++) {
-				if (timeCosts[l] > timeCosts[k]) {
+		double counter = 0;
+		for (int k = 1; k < bound; k++) {
+			for (int l = k+1; l < bound; l++) {
+				if (timeCosts[l] > timeCosts[k]) { //compare values of each timing pair
 					counter++;
 				}
 			}
 		}
-		double time = counter/4950;
-		assertTrue(((0.4 < time) && (time < 0.6)));
+		double time = counter/((bound-1)*((bound-2)/2)); //calculate ratio of time l < k
+		assertTrue(((0.4 < time) && (time < 0.6))); // check if constant time (~0.5)
+	}
+
+	/**
+	 Verifies that the get function is constant time if it always misses
+	 */
+	@Test
+	public void checkConstantTimeMisses () {
+		StringIntProvider provider = new StringIntProvider();
+		provider.populate(20000000);
+		int bound = 100;
+		int amountGets = 100000;
+		long [] timeCosts = new long[bound];
+		for (int i = 1; i < bound; i++) { //get timing values for different cache capacities
+			int capacity = i * amountGets;
+			Cache<String, Integer> cache = new LRUCache<String, Integer>(provider, capacity);
+			populateCache(cache, amountGets, capacity); //populate elements of the cache beyond amountGets to avoid hits
+			long start = System.currentTimeMillis(); //start timer
+			for (int m = 0; m < amountGets; m++) {
+				int temp = cache.get(String.valueOf(m)); //get elements from cache
+			}
+			long end = System.currentTimeMillis(); //end timer
+			timeCosts[i] = end - start; //store time it took to get elements
+		}
+		double counter = 0;
+		for (int k = 1; k < bound; k++) {
+			for (int l = k+1; l < bound; l++) {
+				if (timeCosts[l] > timeCosts[k]) { //compare values of each timing pair
+					counter++;
+				}
+			}
+		}
+		double time = counter/((bound-1)*((bound-2)/2)); //calculate ratio of time l < k
+		assertTrue(((0.4 < time) && (time < 0.6))); //check if constant time (~0.5)
+	}
+
+	/**
+	 * Helper method to automatically populate the cache
+	 * @param c
+	 * @param start
+	 * @param capacity
+	 */
+	public void populateCache (Cache c, int start, int capacity) {
+		for (int j = start; j < capacity + start; j++) { // Populate cache
+			c.get(String.valueOf(j));
+		}
 	}
 
 	/**
@@ -74,17 +139,6 @@ public class CacheTester {
 		provider.populate (100);
 		Cache<String, Integer> cache = new LRUCache<String, Integer> (provider, 0);
 		assertNull(cache.get("12"));
-	}
-
-	//How?
-	/**
-	 * Verifies that the cache is instantiated at the correct capacity
-	 */
-	@Test
-	public void checkSize () {
-		StringIntProvider provider = new StringIntProvider();
-		provider.populate (100);
-		Cache<String, Integer> cache = new LRUCache<String, Integer> (provider, 20);
 	}
 
 	/**
@@ -130,44 +184,24 @@ public class CacheTester {
 	 * already stored it always increments the number of misses
 	 */
 	@Test
-	public void checkOnlyMisses(){
+	public void checkOnlyMisses() {
 		StringIntProvider provider = new StringIntProvider();
 		provider.populate(20);
 		int capacity = 10;
-		Cache<String, Integer> cache = new LRUCache<String, Integer> (provider, capacity);
+		Cache<String, Integer> cache = new LRUCache<String, Integer>(provider, capacity);
 		int[] actual = new int[10];
-		for(int i = 0; i < capacity; i++){ //caches first ten pairs
+		for (int i = 0; i < capacity; i++) { //caches first ten pairs
 			actual[i] = i;
 			cache.get(String.valueOf(i));
 		}
 		assertTrue(cache.getNumMisses() == 10);
 		int[] retrieved = new int[capacity];
-		for(int i = capacity; i < 20;i++){
-			retrieved[i-10] = cache.get(String.valueOf(i)); //misses
+		for (int i = capacity; i < 20; i++) {
+			retrieved[i - 10] = cache.get(String.valueOf(i)); //misses
 		}
 		assertTrue(cache.getNumMisses() == 20);
-		for(int i = 0; i < actual.length; i++){
+		for (int i = 0; i < actual.length; i++) {
 			assertNotEquals(actual[i], retrieved[i]);
 		}
-	}
-
-	/**
-	 * ???
-	 */
-	@Test
-	public void checkProperGet(){
-		StringIntProvider provider = new StringIntProvider();
-		provider.populate(20);
-		int capacity = 10;
-		Cache<String, Integer> cache = new LRUCache<String, Integer> (provider, capacity);
-
-	}
-
-	/**
-	 * Verifies that the get method evicts the correct policy correctly
-	 */
-	@Test
-	public void checkEviction() {
-
 	}
 }

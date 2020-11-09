@@ -48,7 +48,7 @@ public class CacheTester {
 	@Test
 	public void checkConstantTime () {
 		checkConstantTimeHits();
-		checkConstantTimeMisses();
+		//checkConstantTimeMisses();
 	}
 
 	/**
@@ -60,7 +60,7 @@ public class CacheTester {
 		provider.populate(20000000);
 		int bound = 25;
 		int cap = 20;
-		int amountGets = 100000;
+		int amountGets = 1000000;
 		long [] timeCosts = new long[bound];
 		for (int i = 1; i < bound; i++) { //get timing values for different cache capacities
 			int capacity = i * cap;
@@ -82,19 +82,21 @@ public class CacheTester {
 			}
 		}
 		double time = counter/((bound-1)*((bound-2)/2)); //calculate ratio of time l < k
+		//System.out.println (time);
 		assertTrue(((0.3 < time) && (time < 0.7))); // check if constant time (~0.5)
 	}
 
 	/**
 	 Verifies that the get function is constant time if it always misses
 	 */
+
 	@Test
 	public void checkConstantTimeMisses () {
 		StringIntProvider provider = new StringIntProvider();
 		provider.populate(20000000);
 		int bound = 25;
 		int cap = 20;
-		int amountGets = 100000;
+		int amountGets = 1000000;
 		long [] timeCosts = new long[bound];
 		for (int i = 1; i < bound; i++) { //get timing values for different cache capacities
 			int capacity = i * amountGets;
@@ -116,8 +118,10 @@ public class CacheTester {
 			}
 		}
 		double time = counter/((bound-1)*((bound-2)/2)); //calculate ratio of time l < k
+		System.out.println (time);
 		assertTrue(((0.3 < time) && (time < 0.7))); //check if constant time (~0.5)
 	}
+
 
 	/**
 	 * Helper method to automatically populate the cache

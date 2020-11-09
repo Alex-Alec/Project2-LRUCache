@@ -58,11 +58,12 @@ public class CacheTester {
 	public void checkConstantTimeHits () {
 		StringIntProvider provider = new StringIntProvider();
 		provider.populate(20000000);
-		int bound = 100;
+		int bound = 25;
+		int cap = 20;
 		int amountGets = 100000;
 		long [] timeCosts = new long[bound];
 		for (int i = 1; i < bound; i++) { //get timing values for different cache capacities
-			int capacity = i * amountGets;
+			int capacity = i * cap;
 			Cache<String, Integer> cache = new LRUCache<String, Integer>(provider, capacity);
 			populateCache(cache, 0, capacity); //populate all elements of the cache
 			long start = System.currentTimeMillis(); //start timer
@@ -81,7 +82,7 @@ public class CacheTester {
 			}
 		}
 		double time = counter/((bound-1)*((bound-2)/2)); //calculate ratio of time l < k
-		assertTrue(((0.4 < time) && (time < 0.6))); // check if constant time (~0.5)
+		assertTrue(((0.3 < time) && (time < 0.7))); // check if constant time (~0.5)
 	}
 
 	/**
@@ -91,7 +92,8 @@ public class CacheTester {
 	public void checkConstantTimeMisses () {
 		StringIntProvider provider = new StringIntProvider();
 		provider.populate(20000000);
-		int bound = 100;
+		int bound = 25;
+		int cap = 20;
 		int amountGets = 100000;
 		long [] timeCosts = new long[bound];
 		for (int i = 1; i < bound; i++) { //get timing values for different cache capacities
@@ -114,7 +116,7 @@ public class CacheTester {
 			}
 		}
 		double time = counter/((bound-1)*((bound-2)/2)); //calculate ratio of time l < k
-		assertTrue(((0.4 < time) && (time < 0.6))); //check if constant time (~0.5)
+		assertTrue(((0.3 < time) && (time < 0.7))); //check if constant time (~0.5)
 	}
 
 	/**

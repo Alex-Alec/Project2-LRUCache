@@ -36,7 +36,7 @@ public class LRUCache<T, U> implements Cache<T, U> {
 	public U get (T key) {
 
 		if (capacity == 0) {// If the cache's capacity is 0, return null
-			return null;
+			return provider.get(key);
 		}
 
 		if(!cache.containsKey(key)){ // Miss, Account for the fact that cache could still contain the key or encounter a new key
@@ -87,7 +87,7 @@ public class LRUCache<T, U> implements Cache<T, U> {
 	 * @param node
 	 */
 	private void add(Node<T, U> node) {
-
+		
 		if (head == null){ // Check if the linked list is empty
 			head = node;
 			tail = node;
